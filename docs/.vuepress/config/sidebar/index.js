@@ -69,6 +69,8 @@ module.exports = {
 				'java/ck_spring_001',
 				'java/ck_spring_002',
 				'java/ck_spring_003',
+				'java/ck_spring_003',
+				'java/sum_java_001'
 			]
 		},
 		{
