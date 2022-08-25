@@ -79,7 +79,7 @@
                     <p class="music_title">{{musicTitle}}</p>
                     <p class="music_intro">歌手: {{musicName}}</p>
                     <ul class="music_words">
-                        <div class="music_words_box" :style="{top:wordsTop+'px'}">  
+                        <div class="music_words_box" :style="{top:wordsTop+'px'}">
                             <li v-for="(item,index) in musicWords" class="music_word" :class="{word_highlight:wordIndex==index}">{{item}}</li>
                         </div>
                     </ul>
@@ -101,7 +101,7 @@
             </video>
         </div>
     </div>
-    
+
 </template>
 <script>
 // var jsdom = require('jsdom').jsdom;
@@ -113,7 +113,7 @@
 //   }
 // });
 
-import { getWords,getMusicInfo,getMusicUrl,getHotMusic,getSearchSuggest,getHotTalk } from './api/music'
+import { getWords,getMusicInfo,getMusicUrl,getHotMusic,getMyMusic,getSearchSuggest,getHotTalk } from './api/music'
 import pan from './img/pan.png'
 import play from './img/play.png'
 import pause from './img/pause.png'
@@ -125,6 +125,7 @@ import state1 from './img/state_1.png'
 import talkicon1 from './img/talkicon1.png'
 import talkicon2 from './img/talkicon2.png'
 import $ from 'jquery'
+const myMusicId = 3068309305
 export default {
     name:'Player',
     data() {
@@ -160,10 +161,11 @@ export default {
             listButtonActiveIndex:-1,
             thisListPage:1,
             musicTypeList:[
-                {name:'热歌榜',id:1},
-                {name:'新歌榜',id:0},
-                {name:'飙升榜',id:3},
-                {name:'嘻哈榜',id:18},
+                {name:'热歌榜',id:3778678},
+                {name:'新歌榜',id:3779629},
+                {name:'飙升榜',id:19723756},
+                {name:'抖音榜',id:2250011882},
+                {name:'我的单曲',id:myMusicId},
                 {name:'My Songs',id:-1}
             ],
             thisMusicType:-1,
@@ -180,15 +182,23 @@ export default {
         }
     },
     mounted() {
-        var check_flag = this.check();
-        if(!check_flag) {
-            // 手机暂时不显示
-            let musicPlayer = document.getElementById("musicPlayer");
-            musicPlayer.style.display='none';
-            return;
+        // var check_flag = this.check();
+        // if(!check_flag) {
+        //     let musicPlayer = document.getElementById("musicPlayer");
+        //     musicPlayer.style.display='none';
+        //     return;
+        // }
+        if(1==Math.floor(Math.random()*10+1)){
+            let path = this.$route.path
+            if(path != '/' ) return
+            let flag = sessionStorage.getItem('zk');
+            if(flag == null) {
+                window.location.href=('/znote/view/index.html')
+                sessionStorage.setItem('zk', 'zv');
+            }
         }
         this.Player();
-        this._getMusicType(1);
+        this._getMusicType(myMusicId);
     },
     created() {
     },
@@ -196,7 +206,7 @@ export default {
         thisMusicList(){
             return [...this.musicList].splice((this.thisListPage-1)*10,10);  //分页
         },
-        
+
     },
     watch: {
         musicSearchVal(){
@@ -238,7 +248,7 @@ export default {
                 }else{
                     this.myMusicList.push(res.data.songs[0]);
                     //提示已经添加进去
-                    
+
                 }
                 this.MusicAlert('添加成功');
             })
@@ -264,7 +274,7 @@ export default {
                 this.thisListPage++;
             }
         },
-        ListPlay(id){   
+        ListPlay(id){
             if(this.thisMusicIndex!=id){
                 this.thisMusicIndex=id>this.musicList.length-1 ? 0 : id;
                 this._getInfo();
@@ -305,24 +315,27 @@ export default {
                     }else{//自定义库没有歌曲 提示需要搜索才可以添加
                         this.MusicAlert('没有歌曲,需要自己添加');
                     }
-                    
+
                 }else{
-                    getHotMusic(id).then((res)=>{
-                        this.musicList=res.data.playlist.tracks.splice(0,200);
-                        this.thisMusicType=id;
-                        this.thisMusicIndex=0;
-                        this.thisListPage=1;
-                        this._getInfo();
-                        this.top=0;
-                        this.o=0;
-                        this.wordIndex=0;
-                        this.wordsTop=0;
-                        this.currentProgress='0%';
-                        if(!this.playState){
-                            $('.control_icon').click();
-                        }
-                    })
+                    if(myMusicId === id)
+                        getMyMusic(id).then((res)=>{this.getMusicDetail(res, id)})
+                        getHotMusic(id).then((res)=>{this.getMusicDetail(res, id)})
                 }
+            }
+        },
+        getMusicDetail(res, id){
+            this.musicList=res.data.playlist.tracks.splice(0,200);
+            this.thisMusicType=id;
+            this.thisMusicIndex=0;
+            this.thisListPage=1;
+            this._getInfo();
+            this.top=0;
+            this.o=0;
+            this.wordIndex=0;
+            this.wordsTop=0;
+            this.currentProgress='0%';
+            if(!this.playState){
+                $('.control_icon').click();
             }
         },
         _getInfo(){
@@ -336,7 +349,7 @@ export default {
                         }
                         this.MusicAlert(`${this.musicList[this.thisMusicIndex].name}因为一些原因不能播放`);
                         this.ListPlay(nextIndex);//寻找下一首歌  直到找到
-                        
+
                         //提示这首歌不能放
                     }else{
                         //遍历完没有找到
@@ -356,7 +369,7 @@ export default {
                         if(!res.data.nolyric){
                             let info=this.Cut(res.data.lrc.lyric);
                             this.musicWords=info.wordArr;
-                            this.wordsTime=info.timeArr;  
+                            this.wordsTime=info.timeArr;
                         }
                     })
                     getHotTalk(this.musicList[this.thisMusicIndex].id).then((res)=>{
@@ -398,13 +411,9 @@ export default {
             let self=this;
             let player=$('#music')[0];
             let playerTimer=setInterval(timer,1000);
-            //定时器函数
-            $('body').on('click',()=>{
-                player.play();
-                // player.pause();
-                $('body').unbind('click');
-                
-            })
+            // $('body').on('click',()=>{
+            //     $('body').unbind('click');
+            // })
             function timer(){
                 self.currentProgress=`${(player.currentTime/player.duration)*100}%`
                 //接着这里写歌词滚动
