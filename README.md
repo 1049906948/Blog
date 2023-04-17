@@ -4,7 +4,7 @@
 
 - 在项目文件夹下执行命令，加载依赖：`npm install`
 - 在项目文件夹下执行命令，运行项目：`npm run docs:dev`
-- 待启动成功后打开地址即可：[http://localhost:8080/znote/](http://localhost:8080/znote/)
+
 
 ## 项目架构
 
